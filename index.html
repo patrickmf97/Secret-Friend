@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amigo Secreto</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 transition-all duration-300">
+
+  <!-- Botões de Modo Noturno e Tradução -->
+  <div class="fixed top-5 right-5 flex space-x-2">
+    <button id="nightModeButton" class="p-2 bg-gray-200 rounded-l-lg hover:bg-gray-900 text-white">
+      🌙
+    </button>
+    <button id="langSelector" class="p-2 bg-gray-200 rounded-r-lg hover:bg-gray-900 text-black hover:text-white">
+      🇧🇷
+    </button>
+  </div>
+
+  <!-- Popup de instruções -->
+  <div id="instructionsPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-md">
+      <h2 class="text-2xl font-semibold mb-4">Instruções</h2>
+      <p class="mb-4">Você precisa estar logado no <a href="https://web.whatsapp.com" class="text-blue-500" target="_blank">WhatsApp Web</a> se estiver no computador, ou ter o <a href="https://www.whatsapp.com/download" class="text-blue-500" target="_blank">app do WhatsApp</a> instalado no celular para que possamos enviar as mensagens.</p>
+      <p class="mb-4">Além disso, permita popups para garantir que a mensagem seja enviada automaticamente.</p>
+      <button id="closePopup" class="w-full p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Container principal com o formulário -->
+  <div class="max-w-lg mx-auto p-6 mt-24 bg-white shadow-lg rounded-xl">
+    <h1 id="pageTitle" class="text-2xl font-semibold text-center mb-4">Organize Seu Amigo Secreto</h1>
+    
+    <div id="participants" class="space-y-4">
+      <div class="participant space-y-2">
+        <label for="name1" class="text-lg font-medium" id="personLabel1">Pessoa 1</label>
+        <input type="text" id="name1" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nome">
+        <input type="tel" id="phone1" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Telefone">
+      </div>
+    </div>
+    
+    <button id="addPersonButton" class="w-full p-2 mt-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+      Adicionar Pessoa
+    </button>
+
+    <div class="mt-4">
+      <label for="priceRange" class="text-lg font-medium" id="priceLabel">Valor do Presente</label>
+      <select id="priceRange" class="w-full p-2 mt-2 border border-gray-300 rounded-lg">
+        <option value="fixed" id="priceOption1">Preço X</option>
+        <option value="range" id="priceOption2">De X preço a Y preço</option>
+      </select>
+      
+      <div id="priceInputs" class="space-y-2 mt-2 hidden">
+        <input type="number" id="priceMin" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Preço Mínimo">
+        <input type="number" id="priceMax" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Preço Máximo">
+      </div>
+      <div id="fixedPrice" class="space-y-2 mt-2">
+        <input type="number" id="price" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Preço Único">
+      </div>
+    </div>
+
+    <textarea id="message" class="w-full p-2 mt-4 border border-gray-300 rounded-lg" placeholder="Escreva uma mensagem personalizada"></textarea>
+
+    <button id="generateSecretSanta" class="w-full p-3 mt-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+      Criar Amigo Oculto
+    </button>
+  </div>
+
+  <!-- Campo de Decodificação -->
+  <div class="max-w-lg mx-auto p-6 mt-10 bg-white shadow-lg rounded-xl">
+    <h2 class="text-2xl font-semibold text-center mb-4">Decodificar</h2>
+    <textarea id="decodeMessage" class="w-full p-2 mt-4 border border-gray-300 rounded-lg" placeholder="Cole aqui a mensagem criptografada"></textarea>
+    <button id="decodeButton" class="w-full p-3 mt-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+      Decodificar
+    </button>
+    <p id="decodedMessage" class="mt-4 text-center text-lg text-gray-700"></p>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      let participantCount = 1;
+      let currentLanguage = 'pt'; // Idioma inicial é português
+
+      // Função para atualizar os textos da página
+      function updateTranslations() {
+        const textElements = [
+          'pageTitle', 'addPersonText', 'priceLabel', 'priceOption1', 
+          'priceOption2', 'generateButtonText', 'personLabel1', 
+          'priceMinPlaceholder', 'priceMaxPlaceholder', 
+          'fixedPricePlaceholder', 'messagePlaceholder'
+        ];
+
+        const translations = {
+          pt: {
+            pageTitle: 'Organize Seu Amigo Secreto',
+            addPersonText: 'Adicionar Pessoa',
+            priceLabel: 'Valor do Presente',
+            priceOption1: 'Preço X',
+            priceOption2: 'De X preço a Y preço',
+            generateButtonText: 'Criar Amigo Oculto',
+            personLabel1: 'Pessoa 1',
+            priceMinPlaceholder: 'Preço Mínimo',
+            priceMaxPlaceholder: 'Preço Máximo',
+            fixedPricePlaceholder: 'Preço Único',
+            messagePlaceholder: 'Escreva uma mensagem personalizada'
+          },
+          en: {
+            pageTitle: 'Organize Your Secret Santa',
+            addPersonText: 'Add Person',
+            priceLabel: 'Gift Price',
+            priceOption1: 'Fixed Price',
+            priceOption2: 'Price Range',
+            generateButtonText: 'Create Secret Santa',
+            personLabel1: 'Person 1',
+            priceMinPlaceholder: 'Minimum Price',
+            priceMaxPlaceholder: 'Maximum Price',
+            fixedPricePlaceholder: 'Fixed Price',
+            messagePlaceholder: 'Write a custom message'
+          },
+          es: {
+            pageTitle: 'Organiza Tu Amigo Secreto',
+            addPersonText: 'Agregar Persona',
+            priceLabel: 'Valor del Regalo',
+            priceOption1: 'Precio Fijo',
+            priceOption2: 'Rango de Precios',
+            generateButtonText: 'Crear Amigo Secreto',
+            personLabel1: 'Persona 1',
+            priceMinPlaceholder: 'Precio Mínimo',
+            priceMaxPlaceholder: 'Precio Máximo',
+            fixedPricePlaceholder: 'Precio Fijo',
+            messagePlaceholder: 'Escribe un mensaje personalizado'
+          }
+        };
+
+        textElements.forEach(id => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.textContent = translations[currentLanguage][id];
+            if (element.placeholder) {
+              element.placeholder = translations[currentLanguage][id];
+            }
+          }
+        });
+      }
+
+      // Alternar entre idiomas
+      document.getElementById('langSelector').addEventListener('click', function () {
+        currentLanguage = currentLanguage === 'pt' ? 'en' : currentLanguage === 'en' ? 'es' : 'pt';
+        updateTranslations();
+        this.textContent = currentLanguage === 'pt' ? '🇧🇷' : currentLanguage === 'en' ? '🇺🇸' : '🇪🇸';
+      });
+
+      // Modo Noturno
+      document.getElementById('nightModeButton').addEventListener('click', function () {
+        document.body.classList.toggle('bg-gray-900');
+        document.body.classList.toggle('text-black');
+      });
+
+      // Seleção de preço
+      document.getElementById('priceRange').addEventListener('change', function () {
+        if (this.value === 'range') {
+          document.getElementById('priceInputs').classList.remove('hidden');
+          document.getElementById('fixedPrice').classList.add('hidden');
+        } else {
+          document.getElementById('priceInputs').classList.add('hidden');
+          document.getElementById('fixedPrice').classList.remove('hidden');
+        }
+      });
+
+      // Adicionar novas pessoas
+      document.getElementById('addPersonButton').addEventListener('click', function () {
+        participantCount++;
+        const participantDiv = document.createElement('div');
+        participantDiv.classList.add('participant', 'space-y-2');
+        participantDiv.innerHTML = `
+          <label for="name${participantCount}" class="text-lg font-medium">Pessoa ${participantCount}</label>
+          <input type="text" id="name${participantCount}" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nome">
+          <input type="tel" id="phone${participantCount}" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Telefone">
+        `;
+        document.getElementById('participants').appendChild(participantDiv);
+        updateTranslations();  // Atualiza as traduções quando uma nova pessoa for adicionada
+      });
+
+      // Função de criptografar o nome
+      function encryptMessage(name) {
+        return btoa(name);  // Converte o nome para base64
+      }
+
+      // Função de envio via WhatsApp com mensagem criptografada
+      function sendWhatsAppMessage(name, phone, message) {
+        const encryptedMessage = encryptMessage(message);
+        const formattedMessage = `Olá ${name}, seu amigo secreto é *${encryptedMessage}*. ${document.getElementById('message').value}.`;
+        const whatsappURL = `https://wa.me/${phone}?text=${encodeURIComponent(formattedMessage + "\n\nPara ver quem você tirou, cole esta mensagem na página de 'Decodificar'.")}`;
+        window.open(whatsappURL, '_blank');
+      }
+
+      // Função para realizar o sorteio
+      function generateSecretSanta() {
+        const participants = [];
+        const names = document.querySelectorAll('[id^="name"]');
+        const phones = document.querySelectorAll('[id^="phone"]');
+        names.forEach((nameInput, index) => {
+          participants.push({
+            name: nameInput.value,
+            phone: phones[index].value
+          });
+        });
+
+        // Embaralhar participantes
+        const shuffledParticipants = [...participants];
+        shuffledParticipants.sort(() => Math.random() - 0.5);
+
+        // Impedir que alguém tire a si mesmo
+        participants.forEach((participant, index) => {
+          let secretSantaIndex = (index + 1) % participants.length;
+          while (participants[secretSantaIndex].name === participant.name) {
+            secretSantaIndex = (secretSantaIndex + 1) % participants.length;
+          }
+
+          const secretSanta = shuffledParticipants[secretSantaIndex];
+          const message = `Olá ${participant.name}, seu amigo secreto é ${secretSanta.name}. O valor do presente é R$${document.getElementById('price').value || document.getElementById('priceMin').value}.`;
+          sendWhatsAppMessage(participant.name, participant.phone, message);
+        });
+      }
+
+      // Criar o amigo oculto
+      document.getElementById('generateSecretSanta').addEventListener('click', generateSecretSanta);
+
+      // Exibir o popup de instruções
+      setTimeout(() => {
+        document.getElementById('instructionsPopup').classList.remove('hidden');
+      }, 1000);
+
+      // Fechar o popup
+      document.getElementById('closePopup').addEventListener('click', function () {
+        document.getElementById('instructionsPopup').classList.add('hidden');
+      });
+
+      // Decodificar a mensagem
+      document.getElementById('decodeButton').addEventListener('click', function () {
+        const encryptedMessage = document.getElementById('decodeMessage').value;
+        const decodedMessage = atob(encryptedMessage);  // Decodifica a mensagem
+        document.getElementById('decodedMessage').textContent = `Mensagem decodificada: ${decodedMessage}`;
+      });
+
+      // Inicializar a tradução
+      updateTranslations();
+    });
+  </script>
+
+</body>
+</html>
