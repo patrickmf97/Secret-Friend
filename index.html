@@ -191,7 +191,7 @@
       function sendWhatsAppMessage(name, phone, message) {
         const encryptedMessage = encryptMessage(message);
         const formattedMessage = `Olá ${name}, seu amigo secreto é *${encryptedMessage}*. ${document.getElementById('message').value}.`;
-        const whatsappURL = `https://wa.me/${phone}?text=${encodeURIComponent(formattedMessage + "\n\nPara ver quem você tirou, cole esta mensagem na página de 'Decodificar'.")}`;
+        const whatsappURL = `https://wa.me/${phone}?text=${encodeURIComponent(formattedMessage + "\n\nPara ver quem você tirou, volte na pagina "https://secret-friend-beta.vercel.app/" e cole esta mensagem no campo de 'Decodificar' encontrado no fim da paggina.")}`;
         window.open(whatsappURL, '_blank');
       }
 
